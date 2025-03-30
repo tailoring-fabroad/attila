@@ -31,6 +31,11 @@ class UsersQueriesMixin:
         new_image: Optional[str]
     ) -> Record: ...
 
+class ProfilesQueriesMixin:
+    async def is_user_following_for_another(
+        self, conn: Connection, *, follower_username: str, following_username: str
+    ) -> Record: ...
+
 class ArticlesQueriesMixin:
     async def get_articles_for_feed(
         self, conn: Connection, *, follower_username: str, limit: int, offset: int
@@ -38,6 +43,7 @@ class ArticlesQueriesMixin:
 
 class Queries(
     UsersQueriesMixin,
+    ProfilesQueriesMixin,
     ArticlesQueriesMixin,
 ): ...
 

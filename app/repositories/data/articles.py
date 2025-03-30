@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from asyncpg import Record
+from asyncpg import Connection, Record 
 from pypika import Query
 
 from app.models.domain.profiles import Profile
@@ -16,6 +16,8 @@ from app.repositories.queries.tables import (
     users,
 )
 from app.models.domain.articles import Article
+from app.models.domain.users import User
+from app.repositories.data.profiles import ProfilesRepository
 
 AUTHOR_USERNAME_ALIAS = "author_username"
 SLUG_ALIAS = "slug"
@@ -23,12 +25,16 @@ SLUG_ALIAS = "slug"
 CAMEL_OR_SNAKE_CASE_TO_WORDS = r"^[a-z\d_\-]+|[A-Z\d_\-][^A-Z\d_\-]*"
 
 class ArticlesRepository(BaseRepository):  # noqa: WPS214
-    
+    def __init__(self, conn: Connection) -> None:
+        super().__init__(conn)
+        self._profiles_repo = ProfilesRepository(conn)
+
     async def get_articles_for_feed(
         self,
         *,
         limit: int = 20,
         offset: int = 0,
+        requested_user: User,
     ) -> List[Article]:
         articles_rows = await queries.get_articles_for_feed(
             self.connection,
@@ -40,6 +46,7 @@ class ArticlesRepository(BaseRepository):  # noqa: WPS214
                 article_row=article_row,
                 slug=article_row[SLUG_ALIAS],
                 author_username=article_row[AUTHOR_USERNAME_ALIAS],
+                requested_user=requested_user,
             )
             for article_row in articles_rows
         ]
@@ -52,7 +59,7 @@ class ArticlesRepository(BaseRepository):  # noqa: WPS214
         favorited: Optional[str] = None,
         limit: int = 20,
         offset: int = 0,
-        # requested_user: Optional[User] = None,
+        requested_user: Optional[User] = None,
     ) -> List[Article]:
         query_params: List[Union[str, int]] = []
         query_params_count = 0
@@ -152,7 +159,7 @@ class ArticlesRepository(BaseRepository):  # noqa: WPS214
                 article_row=article_row,
                 slug=article_row[SLUG_ALIAS],
                 author_username=article_row[AUTHOR_USERNAME_ALIAS],
-                # requested_user=requested_user,
+                requested_user=requested_user,
             )
             for article_row in articles_rows
         ]
@@ -163,6 +170,7 @@ class ArticlesRepository(BaseRepository):  # noqa: WPS214
         article_row: Record,
         slug: str,
         author_username: str,
+        requested_user: Optional[User],
     ) -> Article:
         return Article(
             id_=article_row["id"],
@@ -172,9 +180,14 @@ class ArticlesRepository(BaseRepository):  # noqa: WPS214
             body=article_row["body"],
             image="",
             tags=[],
-            author=Profile(username=author_username, bio="", image=""),
+            author=await self._profiles_repo.get_profile_by_username(
+                username=author_username,
+                requested_user=requested_user,
+            ),
             favorited=False,
-            favorites_count=0,
+            favorites_count=0
+            if requested_user
+            else False,
             created_at=article_row["created_at"],
             updated_at=article_row["updated_at"],
         )
