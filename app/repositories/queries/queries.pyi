@@ -31,8 +31,14 @@ class UsersQueriesMixin:
         new_image: Optional[str]
     ) -> Record: ...
 
+class ArticlesQueriesMixin:
+    async def get_articles_for_feed(
+        self, conn: Connection, *, follower_username: str, limit: int, offset: int
+    ) -> Record: ...
+
 class Queries(
     UsersQueriesMixin,
+    ArticlesQueriesMixin,
 ): ...
 
 queries: Queries

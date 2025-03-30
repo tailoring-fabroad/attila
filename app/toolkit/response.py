@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from fastapi.encoders import jsonable_encoder
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from typing import Any, List, Optional, Union
@@ -8,16 +9,16 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 
 async def response_success(
-        data: Optional[Any] = None, 
-        message: str = "Success", 
-        status_code: int = 200,
-        ) -> JSONResponse:
+    data: Optional[Any] = None, 
+    message: str = "Success", 
+    status_code: int = 200,
+) -> JSONResponse:
     return JSONResponse(
-        content={
-            "code":status_code,
+        content=jsonable_encoder({
+            "code": status_code,
             "message": message,
             "data": data,
-        },
+        }),
         status_code=status_code,
     )
 

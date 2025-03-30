@@ -10,7 +10,7 @@ from app.models.schemas.authentication import (RequestLogin, RequestRegister, Re
 from app.repositories.data.authentication import (AuthenticationRepository, check_email_is_taken, check_username_is_taken)
 from app.repositories.errors import EntityDoesNotExist
 
-from app.toolkit.response import response_success, response_error
+from app.toolkit.response import response_success
 from app.toolkit import constants
 from app.toolkit import jwt
 
