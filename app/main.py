@@ -5,6 +5,8 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.core.config import get_app_settings
 from app.core.events import create_start_app_handler, create_stop_app_handler
+from app.toolkit.response import response_error, response_validation_error
+from app.controllers.routes.factory import router as factory_router
 
 def get_application() -> FastAPI:
     settings = get_app_settings()
@@ -29,6 +31,11 @@ def get_application() -> FastAPI:
         "shutdown",
         create_stop_app_handler(application),
     )
+
+    application.add_exception_handler(HTTPException, response_error)
+    application.add_exception_handler(RequestValidationError, response_validation_error)
+
+    application.include_router(factory_router, prefix=settings.api_prefix)
 
     return application
 
