@@ -1,7 +1,8 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Sequence
 
 from asyncpg import Connection, Record 
 from pypika import Query
+from slugify import slugify
 
 from app.models.domain.profiles import Profile
 from app.repositories.errors import EntityDoesNotExist
@@ -28,6 +29,39 @@ class ArticlesRepository(BaseRepository):  # noqa: WPS214
     def __init__(self, conn: Connection) -> None:
         super().__init__(conn)
         self._profiles_repo = ProfilesRepository(conn)
+
+    async def create_article(  # noqa: WPS211
+        self,
+        *,
+        slug: str,
+        title: str,
+        description: str,
+        image: str,
+        body: str,
+        author: User,
+        tags: Optional[Sequence[str]] = None,
+    ) -> Article:
+        async with self.connection.transaction():
+            article_row = await queries.create_new_article(
+                self.connection,
+                slug=slug,
+                title=title,
+                description=description,
+                image=image,
+                body=body,
+                author_username=author.username,
+            )
+
+            if tags:
+                await self._tags_repo.create_tags_that_dont_exist(tags=tags)
+                await self._link_article_with_tags(slug=slug, tags=tags)
+
+        return await self._get_article_from_db_record(
+            article_row=article_row,
+            slug=slug,
+            author_username=article_row[AUTHOR_USERNAME_ALIAS],
+            requested_user=author,
+        )
 
     async def get_articles_for_feed(
         self,
@@ -191,3 +225,31 @@ class ArticlesRepository(BaseRepository):  # noqa: WPS214
             created_at=article_row["created_at"],
             updated_at=article_row["updated_at"],
         )
+    
+    async def get_article_by_slug(
+        self,
+        *,
+        slug: str,
+        requested_user: Optional[User] = None,
+    ) -> Article:
+        article_row = await queries.get_article_by_slug(self.connection, slug=slug)
+        if article_row:
+            return await self._get_article_from_db_record(
+                article_row=article_row,
+                slug=article_row[SLUG_ALIAS],
+                author_username=article_row[AUTHOR_USERNAME_ALIAS],
+                requested_user=requested_user,
+            )
+
+        raise EntityDoesNotExist("article with slug {0} does not exist".format(slug))
+    
+async def check_article_exists(articles_repo: ArticlesRepository, slug: str) -> bool:
+    try:
+        await articles_repo.get_article_by_slug(slug=slug)
+    except EntityDoesNotExist:
+        return False
+
+    return True
+
+def get_slug_for_article(title: str) -> str:
+    return slugify(title)

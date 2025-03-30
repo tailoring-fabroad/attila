@@ -1,16 +1,18 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from starlette import status
 
 from app.controllers.dependencies.authentication import get_current_user_authorizer
 from app.controllers.dependencies.articles import get_articles_filters
 from app.controllers.dependencies.database import get_repository
-from app.repositories.data.articles import ArticlesRepository
+from app.repositories.data.articles import (ArticlesRepository, check_article_exists, get_slug_for_article)
 from app.models.domain.users import User
 from app.models.schemas.articles import (
     ArticlesFilters,
     ArticleForResponse,
     ResponseListArticles,
+    RequestCreateArticle,
+    ResponseArticle,
 )
 from app.toolkit import response, constants
 
@@ -49,4 +51,35 @@ async def get_articles(
             articles=articles_for_response,
             articles_count=len(articles),
         )
+    )
+
+@router.post("", name="Create Article", status_code=status.HTTP_201_CREATED)
+async def create_new_article(
+    article_create: RequestCreateArticle = Body(..., embed=True, alias="article"),
+    current_user: User = Depends(get_current_user_authorizer()),
+    articles_repository: ArticlesRepository = Depends(get_repository(ArticlesRepository)),
+) -> ResponseArticle:
+    
+    slug = get_slug_for_article(article_create.title)
+    
+    if await check_article_exists(articles_repository, slug):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=constants.ARTICLE_ALREADY_EXISTS,
+        )
+
+    article = await articles_repository.create_article(
+        slug=slug,
+        title=article_create.title,
+        description=article_create.description,
+        image=article_create.image,
+        body=article_create.body,
+        author=current_user,
+        tags=article_create.tags,
+    )
+    
+    return await response.response_success(
+        status_code= status.HTTP_201_CREATED, 
+        message= "Article Created Successfully",
+        data= article,
     )

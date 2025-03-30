@@ -38,6 +38,7 @@ class Articles(TypedTable):
     slug: str
     title: str
     description: str
+    image:str
     body: str
     author_id: int
     created_at: datetime
