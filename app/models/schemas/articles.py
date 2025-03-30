@@ -24,3 +24,10 @@ class ArticlesFilters(BaseModel):
     favorited: Optional[str] = None
     limit: int = Field(DEFAULT_ARTICLES_LIMIT, ge=1)
     offset: int = Field(DEFAULT_ARTICLES_OFFSET, ge=0)
+
+class RequestCreateArticle(BaseSchema):
+    title: str
+    description: str
+    body: str
+    image: str
+    tags: List[str] = Field([], alias="tagList")

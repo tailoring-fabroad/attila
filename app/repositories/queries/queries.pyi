@@ -40,6 +40,19 @@ class ArticlesQueriesMixin:
     async def get_articles_for_feed(
         self, conn: Connection, *, follower_username: str, limit: int, offset: int
     ) -> Record: ...
+    async def get_article_by_slug(
+        self, conn: Connection, *, slug: str
+    ) -> Record: ...
+    async def create_new_article(
+        self,
+        conn: Connection,
+        *,
+        slug: str,
+        title: str,
+        description: str,
+        body: str,
+        author_username: str
+    ) -> Record: ...
 
 class Queries(
     UsersQueriesMixin,

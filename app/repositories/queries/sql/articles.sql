@@ -55,13 +55,14 @@ WITH author_subquery AS (
     WHERE username = :author_username
 )
 INSERT
-INTO articles (slug, title, description, body, author_id)
-VALUES (:slug, :title, :description, :body, (SELECT id FROM author_subquery))
+INTO articles (slug, title, description, image, body, author_id)
+VALUES (:slug, :title, :description, :image, :body, (SELECT id FROM author_subquery))
 RETURNING
     id,
     slug,
     title,
     description,
+    image,
     body,
         (SELECT username FROM author_subquery) as author_username,
     created_at,
