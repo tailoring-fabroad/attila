@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body, Response
 from starlette import status
 
 from app.controllers.dependencies.authentication import get_current_user_authorizer
@@ -110,3 +110,12 @@ async def update_article_by_slug(
         message= "Article Updated Successfully",
         data= article,
     )
+
+@router.delete("/{slug}", name="Delete Article", dependencies=[Depends(check_article_modification_permissions)],
+    status_code=status.HTTP_204_NO_CONTENT, response_class=Response,
+)
+async def delete_article_by_slug(
+    article: Article = Depends(get_article_by_slug_from_path),
+    articles_repository: ArticlesRepository = Depends(get_repository(ArticlesRepository)),
+) -> None:
+    await articles_repository.delete_article(article=article)

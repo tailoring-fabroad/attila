@@ -65,6 +65,9 @@ class ArticlesQueriesMixin:
         new_image: str,
         new_description: str
     ) -> Record: ...
+    async def delete_article(
+        self, conn: Connection, *, slug: str, author_username: str
+    ) -> None: ...
 
 class Queries(
     UsersQueriesMixin,
