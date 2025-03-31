@@ -40,6 +40,7 @@ SELECT id,
        title,
        description,
        body,
+       image,
        created_at,
        updated_at,
        (SELECT username FROM users WHERE id = author_id) AS author_username

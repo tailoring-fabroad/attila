@@ -90,6 +90,16 @@ async def create_new_article(
         data= article,
     )
 
+@router.get("/{slug}", name="Get Article", dependencies=[Depends(check_article_modification_permissions)])
+async def retrieve_article_by_slug(
+    article: Article = Depends(get_article_by_slug_from_path),
+) -> ResponseArticle:
+    return await response.response_success(
+        status_code= status.HTTP_200_OK, 
+        message= "Success",
+        data= ArticleForResponse.from_orm(article),
+    )
+
 @router.put("/{slug}", name="Update Article", dependencies=[Depends(check_article_modification_permissions)])
 async def update_article_by_slug(
     article_update: RequestUpdateArticle = Body(..., embed=True, alias="article"),

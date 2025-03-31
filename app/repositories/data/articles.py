@@ -146,6 +146,7 @@ class ArticlesRepository(BaseRepository):  # noqa: WPS214
             articles.title,
             articles.description,
             articles.body,
+            articles.image,
             articles.created_at,
             articles.updated_at,
             Query.from_(
@@ -251,7 +252,7 @@ class ArticlesRepository(BaseRepository):  # noqa: WPS214
             title=article_row["title"],
             description=article_row["description"],
             body=article_row["body"],
-            image="",
+            image=article_row["image"],
             tags=[],
             author=await self._profiles_repo.get_profile_by_username(
                 username=author_username,
