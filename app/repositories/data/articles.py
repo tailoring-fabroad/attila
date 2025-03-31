@@ -93,7 +93,15 @@ class ArticlesRepository(BaseRepository):  # noqa: WPS214
             )
 
         return updated_article
-    
+
+    async def delete_article(self, *, article: Article) -> None:
+        async with self.connection.transaction():
+            await queries.delete_article(
+                self.connection,
+                slug=article.slug,
+                author_username=article.author.username,
+            )
+
     async def get_articles_for_feed(
         self,
         *,
