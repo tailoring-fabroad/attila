@@ -81,6 +81,7 @@ UPDATE articles
 SET slug        = :new_slug,
     title       = :new_title,
     body        = :new_body,
+    image       = :new_image,
     description = :new_description
 WHERE slug = :slug
   AND author_id = (SELECT id FROM users WHERE username = :author_username)

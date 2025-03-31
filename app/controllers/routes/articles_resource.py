@@ -3,15 +3,21 @@ from fastapi import APIRouter, Depends, HTTPException, Body
 from starlette import status
 
 from app.controllers.dependencies.authentication import get_current_user_authorizer
-from app.controllers.dependencies.articles import get_articles_filters
+from app.controllers.dependencies.articles import (
+    get_articles_filters, 
+    check_article_modification_permissions, 
+    get_article_by_slug_from_path,
+)
 from app.controllers.dependencies.database import get_repository
 from app.repositories.data.articles import (ArticlesRepository, check_article_exists, get_slug_for_article)
+from app.models.domain.articles import Article
 from app.models.domain.users import User
 from app.models.schemas.articles import (
     ArticlesFilters,
     ArticleForResponse,
     ResponseListArticles,
     RequestCreateArticle,
+    RequestUpdateArticle,
     ResponseArticle,
 )
 from app.toolkit import response, constants
@@ -81,5 +87,26 @@ async def create_new_article(
     return await response.response_success(
         status_code= status.HTTP_201_CREATED, 
         message= "Article Created Successfully",
+        data= article,
+    )
+
+@router.put("/{slug}", name="Update Article", dependencies=[Depends(check_article_modification_permissions)])
+async def update_article_by_slug(
+    article_update: RequestUpdateArticle = Body(..., embed=True, alias="article"),
+    current_article: Article = Depends(get_article_by_slug_from_path),
+    articles_repository: ArticlesRepository = Depends(get_repository(ArticlesRepository)),
+) -> ResponseArticle:
+    
+    slug = get_slug_for_article(article_update.title) if article_update.title else None
+
+    article = await articles_repository.update_article(
+        article=current_article,
+        slug=slug,
+        **article_update.dict(),
+    )
+
+    return await response.response_success(
+        status_code= status.HTTP_200_OK, 
+        message= "Article Updated Successfully",
         data= article,
     )
