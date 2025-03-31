@@ -63,6 +63,37 @@ class ArticlesRepository(BaseRepository):  # noqa: WPS214
             requested_user=author,
         )
 
+    async def update_article(  # noqa: WPS211
+        self,
+        *,
+        article: Article,
+        slug: Optional[str] = None,
+        title: Optional[str] = None,
+        body: Optional[str] = None,
+        image: Optional[str] = None,
+        description: Optional[str] = None,
+    ) -> Article:
+        updated_article = article.copy(deep=True)
+        updated_article.slug = slug or updated_article.slug
+        updated_article.title = title or article.title
+        updated_article.body = body or article.body
+        updated_article.image = image or article.image
+        updated_article.description = description or article.description
+
+        async with self.connection.transaction():
+            updated_article.updated_at = await queries.update_article(
+                self.connection,
+                slug=article.slug,
+                author_username=article.author.username,
+                new_slug=updated_article.slug,
+                new_title=updated_article.title,
+                new_body=updated_article.body,
+                new_image=updated_article.image,
+                new_description=updated_article.description,
+            )
+
+        return updated_article
+    
     async def get_articles_for_feed(
         self,
         *,
@@ -253,3 +284,6 @@ async def check_article_exists(articles_repo: ArticlesRepository, slug: str) -> 
 
 def get_slug_for_article(title: str) -> str:
     return slugify(title)
+
+def check_user_can_modify_article(article: Article, user: User) -> bool :
+    return article.author.username == user.username

@@ -53,6 +53,18 @@ class ArticlesQueriesMixin:
         body: str,
         author_username: str
     ) -> Record: ...
+    async def update_article(
+        self,
+        conn: Connection,
+        *,
+        slug: str,
+        author_username: str,
+        new_slug: str,
+        new_title: str,
+        new_body: str,
+        new_image: str,
+        new_description: str
+    ) -> Record: ...
 
 class Queries(
     UsersQueriesMixin,

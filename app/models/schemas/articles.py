@@ -31,3 +31,10 @@ class RequestCreateArticle(BaseSchema):
     body: str
     image: str
     tags: List[str] = Field([], alias="tagList")
+
+class RequestUpdateArticle(BaseSchema):
+    title: str
+    description: str
+    body: str
+    image: str
+    # tags: List[str] = Field([], alias="tagList")
