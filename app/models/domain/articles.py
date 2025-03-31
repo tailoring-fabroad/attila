@@ -8,8 +8,8 @@ class Article(IDModelMixin, DateTimeModelMixin, BaseModel):
     slug: str
     title: str
     description: str
-    image: str
     body: str
+    image: str
     tags: List[str]
     author: Profile
     favorited: bool
