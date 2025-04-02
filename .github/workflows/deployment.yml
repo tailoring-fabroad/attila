@@ -37,22 +37,32 @@ jobs:
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
     
   deploy:
-        needs: build
-        name: deploy image
-        runs-on: ubuntu-latest
+    needs: build
+    runs-on: ubuntu-latest # Run this job on the latest Ubuntu version
 
-        steps:
-        - name: install ssh keys
-          # check this thread to understand why its needed:
-          # <https://stackoverflow.com/a/70447517>
-          run: |
-            install -m 600 -D /dev/null ~/.ssh/id_rsa
-            echo "${{ secrets.KEY }}" > ~/.ssh/id_rsa
-            ssh-keyscan -H ${{ secrets.HOST }} > ~/.ssh/known_hosts
-        - name: connect and pull
-          run: ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "docker run -d -p 80:8000 -e APP_ENV=dev -e DBUSER=${{ secrets.DBUSER }} -e DBPASSWORD=${{ secrets.DBPASSWORD }} -e DBHOST=${{ secrets.DBHOST }} -e DBPORT=${{ secrets.DBPORT }} -e DBNAME=${{ secrets.DBNAME }} -e JWT=${{ secrets.JWT }} -e GCP_CREDENTIAL=${{ secrets.GCP_CREDENTIAL }} -e GCP_PROJECTID=${{ secrets.GCP_PROJECTID }} -e GCP_BUCKETNAME=${{ secrets.GCP_BUCKETNAME }} -e GCP_PATH=${{ secrets.GCP_PATH }} --name ${{ secrets.CNAME }} ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest"
-        - name: cleanup
-          run: rm -rf ~/.ssh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2 # Check out your repository code
+
+      - name: SSH and run commands
+        env:
+          PRIVATE_KEY: ${{ secrets.KEY }} # Reference the private key stored in GitHub Secrets
+        run: |
+          echo "$PRIVATE_KEY" > private_key.pem # Write the private key to a file
+          chmod 600 private_key.pem # Set the appropriate permissions for the key file
+
+          # Establish an SSH connection and execute commands on the remote server
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.USERNAME }}@${{ secrets.HOST }} <<EOF
+            # Your server commands go here. Replace these commands with those relevant to your project.
+
+            docker run -d -p 80:8000 -e APP_ENV=dev -e DBUSER=$DBUSER -e DBPASSWORD=$DBPASSWORD -e DBHOST=$DBHOST -e DBPORT=$DBPORT -e DBNAME=$DBNAME -e JWT=$JWT -e GCP_CREDENTIAL=$GCP_CREDENTIAL -e GCP_PROJECTID=${{ secrets.GCP_PROJECTID }} -e GCP_BUCKETNAME=$GCP_BUCKETNAME -e GCP_PATH=$GCP_PATH --name ${{ secrets.CNAME }} ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
+          EOF
+
+          rm -f private_key.pem # Remove the private key file after use for security
+    permissions:
+      contents: read
+      actions: write
+      id-token: write
         
   #  - 
   #    name: multiple command
