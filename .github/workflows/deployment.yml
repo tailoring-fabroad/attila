@@ -52,7 +52,7 @@ jobs:
           chmod 600 private_key.pem # Set the appropriate permissions for the key file
 
           # Establish an SSH connection and execute commands on the remote server
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.USERNAME }}@${{ secrets.HOST }} <<EOF
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.USERNAME }}@34.122.202.246 <<EOF
             # Your server commands go here. Replace these commands with those relevant to your project.
 
             docker run -d -p 80:8000 -e APP_ENV=dev -e DBUSER=$DBUSER -e DBPASSWORD=$DBPASSWORD -e DBHOST=$DBHOST -e DBPORT=$DBPORT -e DBNAME=$DBNAME -e JWT=$JWT -e GCP_CREDENTIAL=$GCP_CREDENTIAL -e GCP_PROJECTID=${{ secrets.GCP_PROJECTID }} -e GCP_BUCKETNAME=$GCP_BUCKETNAME -e GCP_PATH=$GCP_PATH --name ${{ secrets.CNAME }} ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
