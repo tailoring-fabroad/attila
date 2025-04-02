@@ -51,14 +51,21 @@ class AppSettings(BaseAppSettings):
 
     @root_validator(pre=True)
     def assemble_db_url(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        db_user = values.get("db_user") or os.environ.get("DBUSER")
-        db_password = values.get("db_password") or os.environ.get("DBPASSWORD")
-        db_host = values.get("db_host") or os.environ.get("DBHOST")
-        db_port = values.get("db_port") or os.environ.get("DBPORT")
-        db_name = values.get("db_name") or os.environ.get("DBNAME")
+        db_user = values.get("db_user") or values.get("DBUSER") or os.environ.get("DBUSER")
+        db_password = values.get("db_password") or values.get("DBPASSWORD") or os.environ.get("DBPASSWORD")
+        db_host = values.get("db_host") or values.get("DBHOST") or os.environ.get("DBHOST")
+        db_port = values.get("db_port") or values.get("DBPORT") or os.environ.get("DBPORT")
+        db_name = values.get("db_name") or values.get("DBNAME") or os.environ.get("DBNAME")
 
         if not values.get("database_url") and all([db_user, db_password, db_host, db_port, db_name]):
             values["database_url"] = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+
+        values.setdefault("db_user", db_user)
+        values.setdefault("db_password", db_password)
+        values.setdefault("db_host", db_host)
+        values.setdefault("db_port", db_port)
+        values.setdefault("db_name", db_name)
+
         return values
 
     @property
