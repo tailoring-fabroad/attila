@@ -35,6 +35,11 @@ jobs:
         file: ./Dockerfile
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
+
+    - name: Test SSH Connectivity
+      run: |
+        nc -zv ${{ secrets.HOST }} ${{ secrets.PORT }} || curl -v telnet://${{ secrets.HOST }}:${{ secrets.PORT }}
+        
     - 
       name: multiple command
       uses: appleboy/ssh-action@v0.1.9
