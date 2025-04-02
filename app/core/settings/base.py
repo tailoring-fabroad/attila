@@ -7,7 +7,7 @@ class AppEnvTypes(Enum):
     dev: str = "dev"
 
 class BaseAppSettings(BaseSettings):
-    app_env: AppEnvTypes = AppEnvTypes.prod
+    app_env: AppEnvTypes = AppEnvTypes.dev
 
     class Config:
         env_file = ".env"
