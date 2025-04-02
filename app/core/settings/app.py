@@ -1,6 +1,8 @@
 import os
 import logging
 import sys
+import base64
+import tempfile
 from typing import Any, Dict, List, Tuple, Optional
 
 from loguru import logger
@@ -50,12 +52,12 @@ class AppSettings(BaseAppSettings):
         validate_assignment = True
 
     @root_validator(pre=True)
-    def assemble_db_url(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        db_user = values.get("db_user") or values.get("DBUSER") or os.environ.get("DBUSER")
-        db_password = values.get("db_password") or values.get("DBPASSWORD") or os.environ.get("DBPASSWORD")
-        db_host = values.get("db_host") or values.get("DBHOST") or os.environ.get("DBHOST")
-        db_port = values.get("db_port") or values.get("DBPORT") or os.environ.get("DBPORT")
-        db_name = values.get("db_name") or values.get("DBNAME") or os.environ.get("DBNAME")
+    def assemble_credential(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        db_user = values.get("db_user") or os.environ.get("DBUSER")
+        db_password = values.get("db_password") or os.environ.get("DBPASSWORD")
+        db_host = values.get("db_host") or os.environ.get("DBHOST")
+        db_port = values.get("db_port") or os.environ.get("DBPORT")
+        db_name = values.get("db_name") or os.environ.get("DBNAME")
 
         if not values.get("database_url") and all([db_user, db_password, db_host, db_port, db_name]):
             values["database_url"] = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
@@ -65,6 +67,18 @@ class AppSettings(BaseAppSettings):
         values.setdefault("db_host", db_host)
         values.setdefault("db_port", db_port)
         values.setdefault("db_name", db_name)
+
+        raw_credential = values.get("gcp_credential") or os.getenv("GCP_CREDENTIAL")
+        if raw_credential:
+            try:
+                decoded = base64.b64decode(raw_credential)
+                with tempfile.NamedTemporaryFile(delete=False, mode="wb") as temp_cred_file:
+                    temp_cred_file.write(decoded)
+                    temp_cred_path = temp_cred_file.name
+                os.chmod(temp_cred_path, 0o600)
+                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_cred_path
+            except Exception as e:
+                raise ValueError(f"error gcp_credential: {e}")
 
         return values
 
