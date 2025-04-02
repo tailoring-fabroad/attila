@@ -36,10 +36,6 @@ jobs:
 #        push: true
 #        tags: ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
 
-    - name: Check Ping to VM
-      run: |
-        ping -c 4 ${{ secrets.HOST }}
-
     - name: multiple command
       uses: appleboy/ssh-action@v1
       with:
