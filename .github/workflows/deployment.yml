@@ -38,7 +38,7 @@ jobs:
 
     - name: Check ping
       run: |
-         ping -c 5 34.87.65.79
+          ping -c 5 34.87.65.79
     
     - name: multiple command
       uses: appleboy/ssh-action@v1
