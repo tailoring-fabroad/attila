@@ -50,14 +50,14 @@ class AppSettings(BaseAppSettings):
 
     @root_validator(pre=True)
     def assemble_db_url(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        if not values.get("database_url"):
-            try:
-                values["database_url"] = (
-                    f"postgresql://{values['db_user']}:{values['db_password']}@"
-                    f"{values['db_host']}:{values['db_port']}/{values['db_name']}"
-                )
-            except KeyError as e:
-                raise ValueError(f"Missing database configuration value: {e}")
+        db_user = values.get("db_user") or values.get("DBUSER")
+        db_password = values.get("db_password") or values.get("DBPASSWORD")
+        db_host = values.get("db_host") or values.get("DBHOST")
+        db_port = values.get("db_port") or values.get("DBPORT")
+        db_name = values.get("db_name") or values.get("DBNAME")
+
+        if not values.get("database_url") and all([db_user, db_password, db_host, db_port, db_name]):
+            values["database_url"] = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
         return values
 
     @property
