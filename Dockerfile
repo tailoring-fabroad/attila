@@ -6,10 +6,12 @@ WORKDIR /app
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        netcat-openbsd \
+        build-essential \
         gcc \
         libpq-dev \
-        curl && \
+        python3-dev \
+        curl \
+        netcat-openbsd && \
     rm -rf /var/lib/apt/lists/*
 
 ENV POETRY_VERSION=1.1.15
