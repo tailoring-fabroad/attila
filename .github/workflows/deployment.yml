@@ -36,9 +36,9 @@ jobs:
 #        push: true
 #        tags: ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
 
-    - name: Check ping
-      run: |
-          ping -c 5 34.122.202.246
+#    - name: Check ping
+#      run: |
+#          ping -c 5 34.122.202.246
     
     - name: multiple command
       uses: appleboy/ssh-action@v1
