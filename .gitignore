@@ -109,4 +109,4 @@ venv.bak/
 # Project
 postgres-data
 
-poetry.lock
+# poetry.lock
