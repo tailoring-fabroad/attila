@@ -35,6 +35,10 @@ jobs:
 #        file: ./Dockerfile
 #        push: true
 #        tags: ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
+
+    - name: Check ping
+      run: |
+          ping -c 5 ${{ secrets.HOST }}
     
     - name: multiple command
       uses: appleboy/ssh-action@v1
