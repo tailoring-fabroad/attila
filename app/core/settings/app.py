@@ -4,7 +4,7 @@ import sys
 from typing import Any, Dict, List, Tuple, Optional
 
 from loguru import logger
-from pydantic import BaseSettings, Field, PostgresDsn, SecretStr, root_validator
+from pydantic import Field, PostgresDsn, SecretStr, root_validator
 
 from app.core.logging import InterceptHandler
 from app.core.settings.base import BaseAppSettings
@@ -19,18 +19,18 @@ class AppSettings(BaseAppSettings):
     title: str = "FastAPI application"
     version: str = "0.0.0"
 
-    db_user: str = Field(..., env="DBUSER")
-    db_password: str = Field(..., env="DBPASSWORD")
-    db_host: str = Field(..., env="DBHOST")
-    db_port: int = Field(..., env="DBPORT")
-    db_name: str = Field(..., env="DBNAME")
+    db_user: Optional[str] = Field(default=None, env="DBUSER")
+    db_password: Optional[str] = Field(default=None, env="DBPASSWORD")
+    db_host: Optional[str] = Field(default=None, env="DBHOST")
+    db_port: Optional[int] = Field(default=None, env="DBPORT")
+    db_name: Optional[str] = Field(default=None, env="DBNAME")
 
     database_url: Optional[PostgresDsn] = None
 
     max_connection_count: int = 10
     min_connection_count: int = 10
 
-    secret_key: SecretStr = Field(..., env="JWT")
+    secret_key: Optional[SecretStr] = Field(default=None, env="JWT")
 
     gcp_credential: Optional[str] = Field(default=None, env="GCP_CREDENTIAL")
     gcp_projectid: Optional[str] = Field(default=None, env="GCP_PROJECTID")
@@ -51,11 +51,11 @@ class AppSettings(BaseAppSettings):
 
     @root_validator(pre=True)
     def assemble_db_url(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        db_user = os.environ.get("DBUSER")
-        db_password = os.environ.get("DBPASSWORD")
-        db_host = os.environ.get("DBHOST")
-        db_port = os.environ.get("DBPORT")
-        db_name = os.environ.get("DBNAME")
+        db_user = values.get("db_user") or os.environ.get("DBUSER")
+        db_password = values.get("db_password") or os.environ.get("DBPASSWORD")
+        db_host = values.get("db_host") or os.environ.get("DBHOST")
+        db_port = values.get("db_port") or os.environ.get("DBPORT")
+        db_name = values.get("db_name") or os.environ.get("DBNAME")
 
         if not values.get("database_url") and all([db_user, db_password, db_host, db_port, db_name]):
             values["database_url"] = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
