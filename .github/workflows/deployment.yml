@@ -37,6 +37,7 @@ jobs:
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
     
   deploy:
+        needs: build
         name: deploy image
         runs-on: ubuntu-latest
 
