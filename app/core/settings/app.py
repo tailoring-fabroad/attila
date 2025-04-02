@@ -1,3 +1,4 @@
+import os
 import logging
 import sys
 from typing import Any, Dict, List, Tuple, Optional
@@ -50,11 +51,11 @@ class AppSettings(BaseAppSettings):
 
     @root_validator(pre=True)
     def assemble_db_url(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        db_user = values.get("db_user") or values.get("DBUSER")
-        db_password = values.get("db_password") or values.get("DBPASSWORD")
-        db_host = values.get("db_host") or values.get("DBHOST")
-        db_port = values.get("db_port") or values.get("DBPORT")
-        db_name = values.get("db_name") or values.get("DBNAME")
+        db_user = os.environ.get("DBUSER")
+        db_password = os.environ.get("DBPASSWORD")
+        db_host = os.environ.get("DBHOST")
+        db_port = os.environ.get("DBPORT")
+        db_name = os.environ.get("DBNAME")
 
         if not values.get("database_url") and all([db_user, db_password, db_host, db_port, db_name]):
             values["database_url"] = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
