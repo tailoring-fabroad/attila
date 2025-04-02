@@ -35,35 +35,48 @@ jobs:
         file: ./Dockerfile
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
+    
+  deploy:
+        name: deploy image
+        runs-on: ubuntu-latest
 
-    - name: Test SSH Connectivity
-      run: |
-        nc -zv ${{ secrets.HOST }} ${{ secrets.PORT }} || curl -v telnet://${{ secrets.HOST }}:${{ secrets.PORT }}
+        steps:
+        - name: install ssh keys
+          # check this thread to understand why its needed:
+          # <https://stackoverflow.com/a/70447517>
+          run: |
+            install -m 600 -D /dev/null ~/.ssh/id_rsa
+            echo "${{ secrets.KEY }}" > ~/.ssh/id_rsa
+            ssh-keyscan -H ${{ secrets.HOST }} > ~/.ssh/known_hosts
+        - name: connect and pull
+          run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker run -d -p 80:8000 -e APP_ENV=dev -e DBUSER=${{ secrets.DBUSER }} -e DBPASSWORD=${{ secrets.DBPASSWORD }} -e DBHOST=${{ secrets.DBHOST }} -e DBPORT=${{ secrets.DBPORT }} -e DBNAME=${{ secrets.DBNAME }} -e JWT=${{ secrets.JWT }} -e GCP_CREDENTIAL=${{ secrets.GCP_CREDENTIAL }} -e GCP_PROJECTID=${{ secrets.GCP_PROJECTID }} -e GCP_BUCKETNAME=${{ secrets.GCP_BUCKETNAME }} -e GCP_PATH=${{ secrets.GCP_PATH }} --name ${{ secrets.CNAME }} ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest"
+        - name: cleanup
+          run: rm -rf ~/.ssh
         
-    - 
-      name: multiple command
-      uses: appleboy/ssh-action@v0.1.9
-      env:
-        DBUSER: ${{ secrets.DBUSER }}
-        DBPASSWORD: ${{ secrets.DBPASSWORD }}
-        DBHOST: ${{ secrets.DBHOST }}
-        DBPORT: ${{ secrets.DBPORT }}
-        DBNAME: ${{ secrets.DBNAME }}
-        JWT: ${{ secrets.JWT }}
-        GCP_CREDENTIAL: ${{ secrets.GCP_CREDENTIAL }}
-        GCP_PROJECTID: ${{ secrets.GCP_PROJECTID }}
-        GCP_BUCKETNAME: ${{ secrets.GCP_BUCKETNAME }}
-        GCP_PATH: ${{ secrets.GCP_PATH }}
+  #  - 
+  #    name: multiple command
+  #    uses: appleboy/ssh-action@v0.1.9
+  #    env:
+  #      DBUSER: ${{ secrets.DBUSER }}
+  #      DBPASSWORD: ${{ secrets.DBPASSWORD }}
+  #      DBHOST: ${{ secrets.DBHOST }}
+  #      DBPORT: ${{ secrets.DBPORT }}
+  #      DBNAME: ${{ secrets.DBNAME }}
+  #      JWT: ${{ secrets.JWT }}
+  #      GCP_CREDENTIAL: ${{ secrets.GCP_CREDENTIAL }}
+  #      GCP_PROJECTID: ${{ secrets.GCP_PROJECTID }}
+  #      GCP_BUCKETNAME: ${{ secrets.GCP_BUCKETNAME }}
+  #      GCP_PATH: ${{ secrets.GCP_PATH }}
         
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.KEY }}
-        port: ${{ secrets.PORT }}
-        script: |
-          echo $DBPASSWORD
-          docker stop ${{ secrets.CNAME }}
-          docker rm ${{ secrets.CNAME }}
-          docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
-          docker run -d -p 80:8000 -e APP_ENV=dev -e DBUSER=$DBUSER -e DBPASSWORD=$DBPASSWORD -e DBHOST=$DBHOST -e DBPORT=$DBPORT -e DBNAME=$DBNAME -e JWT=$JWT -e GCP_CREDENTIAL=$GCP_CREDENTIAL -e GCP_PROJECTID=${{ secrets.GCP_PROJECTID }} -e GCP_BUCKETNAME=$GCP_BUCKETNAME -e GCP_PATH=$GCP_PATH --name ${{ secrets.CNAME }} ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
+  #    with:
+  #      host: ${{ secrets.HOST }}
+  #      username: ${{ secrets.USERNAME }}
+  #      key: ${{ secrets.KEY }}
+  #      port: ${{ secrets.PORT }}
+  #      script: |
+  #        echo $DBPASSWORD
+  #        docker stop ${{ secrets.CNAME }}
+  #        docker rm ${{ secrets.CNAME }}
+  #        docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
+  #        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
+  #        docker run -d -p 80:8000 -e APP_ENV=dev -e DBUSER=$DBUSER -e DBPASSWORD=$DBPASSWORD -e DBHOST=$DBHOST -e DBPORT=$DBPORT -e DBNAME=$DBNAME -e JWT=$JWT -e GCP_CREDENTIAL=$GCP_CREDENTIAL -e GCP_PROJECTID=${{ secrets.GCP_PROJECTID }} -e GCP_BUCKETNAME=$GCP_BUCKETNAME -e GCP_PATH=$GCP_PATH --name ${{ secrets.CNAME }} ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
