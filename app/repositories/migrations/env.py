@@ -1,9 +1,12 @@
+import os
 import pathlib
 import sys
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
+
+os.environ["APP_ENV"] = os.environ.get("APP_ENV", "dev")
 
 BASE_DIR = pathlib.Path(__file__).resolve().parents[3]  
 sys.path.append(str(BASE_DIR))
