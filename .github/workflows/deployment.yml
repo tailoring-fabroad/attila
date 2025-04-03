@@ -49,6 +49,7 @@ jobs:
             docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest || true
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/tailoring-python:latest
             docker run -d \
+              --network app-net \
               -e APP_ENV=dev \
               -e DBUSER=${{ secrets.DBUSER }} \
               -e DBPASSWORD=${{ secrets.DBPASSWORD }} \
