@@ -68,22 +68,14 @@ class AppSettings(BaseAppSettings):
         values.setdefault("db_port", db_port)
         values.setdefault("db_name", db_name)
 
-        raw_credential = values.get("gcp_credential") or os.getenv("GCP_CREDENTIAL")
+        raw_credential = values.get("gcp_credential") or os.environ.get("GCP_CREDENTIAL")
         if raw_credential:
-            try:
-                # 👉 Add padding if missing
-                missing_padding = len(raw_credential) % 4
-                if missing_padding:
-                    raw_credential += '=' * (4 - missing_padding)
-    
-                decoded = base64.b64decode(raw_credential)
-                with tempfile.NamedTemporaryFile(delete=False, mode="wb") as temp_cred_file:
-                    temp_cred_file.write(decoded)
-                    temp_cred_path = temp_cred_file.name
-                os.chmod(temp_cred_path, 0o600)
-                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_cred_path
-            except Exception as e:
-                raise ValueError(f"error gcp_credential: {e}")
+            if os.path.exists(raw_credential):
+                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = raw_credential
+                values["gcp_credential"] = raw_credential
+            else:
+                print(f"[DEBUG] credential file not found at: {raw_credential}")
+                raise ValueError("GCP_CREDENTIAL path does not exist or is invalid")
 
         return values
 

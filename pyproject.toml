@@ -36,6 +36,7 @@ pytest-env = "^0.6.2"
 pytest-xdist = "^2.4.0"
 httpx = "^0.23.0"
 asgi-lifespan = "^1.0.1"
+python-multipart = "^0.0.20"
 
 [tool.isort]
 profile = "black"
