@@ -71,6 +71,11 @@ class AppSettings(BaseAppSettings):
         raw_credential = values.get("gcp_credential") or os.getenv("GCP_CREDENTIAL")
         if raw_credential:
             try:
+                # 👉 Add padding if missing
+                missing_padding = len(raw_credential) % 4
+                if missing_padding:
+                    raw_credential += '=' * (4 - missing_padding)
+    
                 decoded = base64.b64decode(raw_credential)
                 with tempfile.NamedTemporaryFile(delete=False, mode="wb") as temp_cred_file:
                     temp_cred_file.write(decoded)

@@ -21,3 +21,5 @@ ARTICLE_IS_NOT_FAVORITED = "article is not favorited"
 COMMENT_DOES_NOT_EXIST = "comment does not exist"
 
 AUTHENTICATION_REQUIRED = "authentication required"
+
+INVALID_FILE_TYPE = "invalid file type"
