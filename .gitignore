@@ -111,3 +111,4 @@ postgres-data
 
 # poetry.lock
 gcp-credential.json
+gcp-credential_encoded.txt
