@@ -1,3 +1,5 @@
+# source .env && make run -> jika env gagal di load
+
 run:
 	@poetry install
 	@poetry shell

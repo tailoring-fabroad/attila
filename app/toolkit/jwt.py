@@ -5,10 +5,12 @@ import jwt
 from pydantic import BaseModel, ValidationError
 
 from app.models.domain.users import User
+from app.core.config import get_app_settings
 
+SETTINGS = get_app_settings()
 JWT_SUBJECT = "access"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 10  # 10 minutes
+ACCESS_TOKEN_EXPIRE_MINUTES = SETTINGS.secret_key_expired
 
 class JWTMeta(BaseModel):
     exp: datetime
