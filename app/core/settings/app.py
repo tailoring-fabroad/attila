@@ -31,7 +31,7 @@ class AppSettings(BaseAppSettings):
     min_connection_count: int = 10
 
     secret_key: Optional[SecretStr] = Field(default=None, env="JWT")
-    secret_key_expired: Optional[int] = Field(default=None, env="JWT_EXP")
+    secret_key_expired: Optional[int] = Field(default=1440, env="JWT_EXP")
 
     gcp_credential: Optional[str] = Field(default=None, env="GCP_CREDENTIAL")
     gcp_projectid: Optional[str] = Field(default=None, env="GCP_PROJECTID")

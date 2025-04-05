@@ -12,6 +12,8 @@ JWT_SUBJECT = "access"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = SETTINGS.secret_key_expired
 
+print(f"[DEBUG] JWT EXP = {ACCESS_TOKEN_EXPIRE_MINUTES}")
+
 class JWTMeta(BaseModel):
     exp: datetime
     sub: str
