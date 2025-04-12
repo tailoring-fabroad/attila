@@ -1,16 +1,17 @@
-FROM python:3.11-slim
+FROM python:3.13-alpine
 
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        build-essential \
+RUN apk update && \
+    apk add --no-cache \
+        build-base \
         gcc \
-        libpq-dev \
+        musl-dev \
+        postgresql-dev \
         curl \
-        netcat-openbsd && \
+        netcat-openbsd \
     rm -rf /var/lib/apt/lists/*
 
 ENV POETRY_VERSION=1.7.1
