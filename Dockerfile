@@ -11,7 +11,7 @@ RUN apk update && \
         musl-dev \
         postgresql-dev \
         curl \
-        netcat-openbsd \
+        netcat-openbsd && \
     rm -rf /var/lib/apt/lists/*
 
 ENV POETRY_VERSION=1.7.1
