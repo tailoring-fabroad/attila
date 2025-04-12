@@ -22,8 +22,7 @@ RUN pip install --upgrade pip && pip install poetry==1.7.1
 COPY pyproject.toml poetry.lock ./
 
 RUN poetry config virtualenvs.create false && \
-    poetry install --only main --no-interaction --no-ansi && \
-    poetry cache clear --all pypi
+    poetry install --only main --no-interaction --no-ansi
 
 COPY . .
 
