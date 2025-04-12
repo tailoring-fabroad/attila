@@ -1,29 +1,37 @@
-FROM python:3.11-alpine AS builder
-
-ENV PYTHONUNBUFFERED=1
-ENV POETRY_VERSION=1.7.1
-ENV PATH="/root/.local/bin:$PATH"
+FROM python:3.11-slim AS builder
+ENV PYTHONUNBUFFERED=1 \
+    POETRY_VERSION=1.7.1 \
+    PATH="/root/.local/bin:$PATH"
 
 WORKDIR /app
 
-RUN apk update && apk add --no-cache build-base gcc musl-dev postgresql-dev curl netcat-openbsd libffi-dev openssl-dev python3-dev
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential gcc libpq-dev curl netcat-openbsd && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade pip && pip install poetry==$POETRY_VERSION
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
 COPY pyproject.toml poetry.lock ./
-RUN poetry config virtualenvs.create false && poetry install --only main --no-interaction --no-ansi
+RUN poetry config virtualenvs.create false && poetry install --no-dev --no-interaction
+
 COPY . .
 
-FROM python:3.11-alpine AS final
+FROM python:3.11-slim AS runtime
 
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    PATH="/root/.local/bin:$PATH"
 
 WORKDIR /app
 
-RUN apk update && apk add --no-cache postgresql-dev curl netcat-openbsd libffi openssl
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libpq-dev curl netcat-openbsd && \
+    rm -rf /var/lib/apt/lists/*
 
+COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
+COPY --from=builder /root/.local /root/.local
 COPY --from=builder /app /app
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host=0.0.0.0 --port=8000"]
+CMD ["sh", "-c", "poetry run alembic upgrade head && poetry run uvicorn app.main:app --host=0.0.0.0 --port=8000"]
+    
