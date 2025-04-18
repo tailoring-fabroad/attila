@@ -19,18 +19,42 @@ class AuthenticationRepository(BaseRepository):
             return Authentication(**user_row)
         raise EntityDoesNotExist("user with username {0} does not exist".format(username))
     
-    async def create_user(self, *, username: str,email: str, password: str) -> Authentication:
+    async def create_user(self, *, username: str, email: str, password: str, role: int) -> Authentication:
         user = Authentication(username=username, email=email)
         user.change_password(password)
-        async with self.connection.transaction():
+
+        tx = self.connection.transaction()
+        await tx.start()
+
+        try:
             user_row = await queries.create_new_user(
                 self.connection,
-                username=user.username,
-                email=user.email,
+                username=username,
+                email=email,
                 salt=user.salt,
                 hashed_password=user.hashed_password,
             )
-        return user.copy(update=dict(user_row))
+            user_id = user_row["id"]
+
+            role_row_id = await queries.create_new_role(
+                self.connection,
+                name=role,
+            )
+            role_id = role_row_id
+
+            await queries.create_new_user_to_role(
+                conn=self.connection,
+                user_id=user_id,
+                role_id=role_id
+            )
+
+            await tx.commit()
+
+            return user.copy(update=dict(user_row))
+
+        except Exception as e:
+            await tx.rollback()
+            raise e
     
 async def check_username_is_taken(authentication_repository: AuthenticationRepository, username: str) -> bool:
     try:

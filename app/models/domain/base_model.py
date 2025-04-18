@@ -1,6 +1,9 @@
 import datetime
 
 from pydantic import BaseConfig, BaseModel as BModel
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 def convert_datetime_to_base_model(dt: datetime.datetime) -> str:
     return dt.replace(tzinfo=datetime.timezone.utc).isoformat().replace("+00:00", "Z")

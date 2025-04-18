@@ -30,6 +30,19 @@ class UsersQueriesMixin:
         new_bio: Optional[str],
         new_image: Optional[str]
     ) -> Record: ...
+    async def create_new_role(
+        self,
+        conn: Connection,
+        *,
+        name: int
+    ) -> int: ...
+    async def create_new_user_to_role(
+        self,
+        conn: Connection,
+        *,
+        user_id: int,
+        role_id: int
+    ) -> None: ...
 
 class ProfilesQueriesMixin:
     async def is_user_following_for_another(

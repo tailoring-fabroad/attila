@@ -1,10 +1,15 @@
-from typing import Optional
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
+from app.models.domain.base_model import Base
+from app.models.domain.roles import users_to_roles
 
-from app.models.common import DateTimeModelMixin, IDModelMixin
-from app.models.domain.base_model import BaseModel
+class User(Base):
+    __tablename__ = "users"
 
-class User(BaseModel):
-    username: str
-    email: str
-    bio: str = ""
-    image: Optional[str] = None
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    bio = Column(String, default="")
+    image = Column(String, nullable=True)
+
+    roles = relationship("Role", secondary=users_to_roles, back_populates="users")
